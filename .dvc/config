@@ -1,0 +1,8 @@
+[core]
+    remote = dataset-tracker
+['remote "pipeline-tracker"']
+    url = s3://dvc-models-datasets-tracker/playground_series_gemstone_price_dataset/pipelines/
+['remote "model-tracker"']
+    url = s3://dvc-models-datasets-tracker/playground_series_gemstone_price_dataset/models/
+['remote "dataset-tracker"']
+    url = s3://dvc-models-datasets-tracker/playground_series_gemstone_price_dataset/datasets/
