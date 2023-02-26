@@ -1,0 +1,56 @@
+schema: '2.0'
+stages:
+  feat_engineering_processing:
+    cmd: python src/feat_engineering.py
+    deps:
+    - path: data/test.csv
+      md5: 56c8e9b0158928ad33807626b70eb438
+      size: 6428171
+    - path: data/train.csv
+      md5: 14ddfc56c931255ee10d3859d0ac4fc0
+      size: 10462804
+    - path: src/feat_engineering.py
+      md5: 003330e7eb4b7a3e1600270eb5f76ae7
+      size: 3203
+    outs:
+    - path: data/test_prepared_feat_eng.csv
+      md5: 0713087405af9f12668e593ba448dda1
+      size: 5608454
+    - path: data/train_prepared_feat_eng.csv
+      md5: 4f978b76f4db4da21915d81685985e73
+      size: 9236840
+  feat_selection:
+    cmd: python src/feat_selection.py
+    deps:
+    - path: data/train_prepared_feat_eng.csv
+      md5: 4f978b76f4db4da21915d81685985e73
+      size: 9236840
+    - path: src/feat_selection.py
+      md5: 7548accb249ad204e22c3bdb258895a5
+      size: 1668
+    outs:
+    - path: data/selected_feat.csv
+      md5: 80239d3b5687cf88cdadfc3226ce9c92
+      size: 51
+  train-evaluate:
+    cmd: python src/train_evaluate.py
+    deps:
+    - path: data/selected_feat.csv
+      md5: 80239d3b5687cf88cdadfc3226ce9c92
+      size: 51
+    - path: data/train_prepared_feat_eng.csv
+      md5: 4f978b76f4db4da21915d81685985e73
+      size: 9236840
+    - path: src/train_evaluate.py
+      md5: 20900c379f53953dd0c0ebcd80b08a15
+      size: 3624
+    outs:
+    - path: model/baseline_model.joblib
+      md5: d85fe1dabc503d73326dd7cba75e453a
+      size: 1078
+    - path: model/minmax_scaler.joblib
+      md5: 1f2717bffaa261d05337771d13c6c245
+      size: 1367
+    - path: notes/report.json
+      md5: 9d50c93b381940e5d3692e37ad158d10
+      size: 135

@@ -1,0 +1,5 @@
+pandas==1.5.3
+scikit-learn==1.2.1
+xgboost==1.7.4
+matplotlib==3.7.0
+feature-engine==1.5.2

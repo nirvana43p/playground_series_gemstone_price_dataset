@@ -2,3 +2,7 @@
 /test.csv
 /sample_submission.csv
 /data_dictionary.xlsx
+/train_prepared_feat_eng.csv
+/test_prepared_feat_eng.csv
+/selected_feat.csv
+/submissions/

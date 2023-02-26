@@ -1,5 +1,5 @@
 [core]
-    remote = dataset-tracker
+    remote = pipeline-tracker
 ['remote "pipeline-tracker"']
     url = s3://dvc-models-datasets-tracker/playground_series_gemstone_price_dataset/pipelines/
 ['remote "model-tracker"']

@@ -1,0 +1,17 @@
+#name: Metrics of best models
+#on:
+#  push:
+#    branches :
+#      - '*'
+#jobs:
+#  generate-report:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#      - uses: iterative/setup-cml@v1
+#      - name: Push metrics
+#        env:
+#          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}      
+#        run: |
+#          cat notes/report.json >> report.md 
+#          cml comment create --publish report.md      
