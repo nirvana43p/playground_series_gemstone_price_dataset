@@ -10,47 +10,47 @@ stages:
       md5: 14ddfc56c931255ee10d3859d0ac4fc0
       size: 10462804
     - path: src/feat_engineering.py
-      md5: 003330e7eb4b7a3e1600270eb5f76ae7
-      size: 3203
+      md5: fa1328ad81363bc8018294dad4343645
+      size: 9545
     outs:
     - path: data/test_prepared_feat_eng.csv
-      md5: 0713087405af9f12668e593ba448dda1
-      size: 5608454
+      md5: 7f39ef23dc0d16f508931b9210f68ea7
+      size: 40002175
     - path: data/train_prepared_feat_eng.csv
-      md5: 4f978b76f4db4da21915d81685985e73
-      size: 9236840
+      md5: 5c625caab4cf5c966020e224492add88
+      size: 60870881
   feat_selection:
     cmd: python src/feat_selection.py
     deps:
     - path: data/train_prepared_feat_eng.csv
-      md5: 4f978b76f4db4da21915d81685985e73
-      size: 9236840
+      md5: 5c625caab4cf5c966020e224492add88
+      size: 60870881
     - path: src/feat_selection.py
-      md5: 7548accb249ad204e22c3bdb258895a5
-      size: 1668
+      md5: 55d090c8e3586f49f14b84a554baf8c4
+      size: 1753
     outs:
     - path: data/selected_feat.csv
-      md5: 80239d3b5687cf88cdadfc3226ce9c92
-      size: 51
+      md5: bba05edb691d1423630b71b7d0ab72f3
+      size: 325
   train-evaluate:
     cmd: python src/train_evaluate.py
     deps:
     - path: data/selected_feat.csv
-      md5: 80239d3b5687cf88cdadfc3226ce9c92
-      size: 51
+      md5: bba05edb691d1423630b71b7d0ab72f3
+      size: 325
     - path: data/train_prepared_feat_eng.csv
-      md5: 4f978b76f4db4da21915d81685985e73
-      size: 9236840
+      md5: 5c625caab4cf5c966020e224492add88
+      size: 60870881
     - path: src/train_evaluate.py
-      md5: 20900c379f53953dd0c0ebcd80b08a15
-      size: 3624
+      md5: 19f5e66824aabfcdef6353006acd1e66
+      size: 3490
     outs:
-    - path: model/baseline_model.joblib
-      md5: d85fe1dabc503d73326dd7cba75e453a
-      size: 1078
+    - path: model/lineal_model.joblib
+      md5: 688204de1dacfdeab8e63e9af262682f
+      size: 1450
     - path: model/minmax_scaler.joblib
-      md5: 1f2717bffaa261d05337771d13c6c245
-      size: 1367
+      md5: 0c9c02ad62e71b555de5a3a82af3916d
+      size: 2335
     - path: notes/report.json
-      md5: 9d50c93b381940e5d3692e37ad158d10
-      size: 135
+      md5: 58000b47aa8c6a817018d32e7803a320
+      size: 132

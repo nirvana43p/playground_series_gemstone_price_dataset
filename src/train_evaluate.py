@@ -6,9 +6,9 @@ warnings.simplefilter(action="ignore", category=DeprecationWarning)
 import pandas as pd
 import numpy as np
 
-from sklearn.linear_model import Lasso
+from sklearn.linear_model import Ridge
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.linear_model import LassoCV
+from sklearn.linear_model import RidgeCV
 from sklearn.model_selection import RepeatedKFold, cross_val_score
 
 
@@ -31,7 +31,7 @@ from utils import save_simple_metrics_report
 
 DATA_TRAIN_PATH = join("data", "train_prepared_feat_eng.csv")
 SELECTED_FEAT_PATH = join("data", "selected_feat.csv")
-MODEL_TYPE = "baseline_model"
+MODEL_TYPE = "lineal_model"
 
 TARGET = "price"
 
@@ -65,11 +65,7 @@ def find_best_alpha(model):
     """
         Find best alpha based con CV
     """
-    logger.info("Finding best alpha...")
-    mse_cv = model.mse_path_.mean(axis=1)
-    rmse_cv = np.sqrt(mse_cv)
-
-    best_alpha = model.alphas_[np.argmin(rmse_cv)]
+    best_alpha = model.alpha_
     logger.info(f"Best alpha value found : {best_alpha}")
 
     return best_alpha
@@ -83,7 +79,7 @@ def lineal_model_hyper_tunne(X, y):
 
     cv = RepeatedKFold(n_splits=5, n_repeats=1, random_state=SEED)
     alphas = np.logspace(-10, 3, 200)
-    model = LassoCV(alphas=alphas, cv=cv)
+    model = RidgeCV(alphas=alphas, cv=cv)
     _ = model.fit(X, y)
     best_alpha = find_best_alpha(model)
     best_params["alpha"] = best_alpha
@@ -96,7 +92,7 @@ def lineal_model_training(best_params, X, y):
     """
     best_score = np.mean(
         cross_val_score(
-            Lasso(**best_params, random_state=SEED),
+            Ridge(**best_params, random_state=SEED),
             X,
             y,
             cv=RepeatedKFold(n_splits=15, n_repeats=1, random_state=SEED),
@@ -104,7 +100,7 @@ def lineal_model_training(best_params, X, y):
         )
     )
     logger.info("RMSE perfomance : {}".format(-1 * best_score))
-    model = Lasso(**best_params, random_state=SEED).fit(X, y)
+    model = Ridge(**best_params, random_state=SEED).fit(X, y)
     logger.info("Training Finished...")
     return model, -1 * best_score
 
@@ -121,4 +117,4 @@ if __name__ == "__main__":
     logger.info("Generating Report...")
     save_simple_metrics_report(eval_score, best_params, model_name = MODEL_TYPE, SEED = SEED)
     logger.info("Saving Model...")
-    joblib.dump(model,join("model","baseline_model.joblib"))
+    joblib.dump(model,join("model","{}.joblib".format(MODEL_TYPE)))

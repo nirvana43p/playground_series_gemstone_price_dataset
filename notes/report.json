@@ -1,1 +1,1 @@
-{"Model Name": "baseline_model", "RMSE - CV": 1015.1190983808174, "Best Hyperparameters": {"alpha": 0.03612342699709438}, "SEED": 8274}
+{"Model Name": "lineal_model", "RMSE - CV": 895.4712746740528, "Best Hyperparameters": {"alpha": 0.05672426068491989}, "SEED": 8274}

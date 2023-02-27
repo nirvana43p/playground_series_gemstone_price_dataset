@@ -6,7 +6,9 @@ warnings.simplefilter(action="ignore", category=DeprecationWarning)
 import pandas as pd
 import numpy as np
 
-from feature_engine.selection import DropCorrelatedFeatures
+from sklearn.linear_model import Ridge
+from sklearn.feature_selection import RFECV
+
 
 import sys
 import os
@@ -41,16 +43,17 @@ def read_data():
 
 def feature_selection(df_train):
     """
-        Feature selection step:
-
-            - Drop very hight correleted features
+        Feature selection step
     """
     X_train, y_train = df_train.drop(columns=[TARGET,"id"]).copy(), df_train[TARGET].copy()
-    logger.info("Feature selection - drop correlated features (0.99 of threshold)")
-    drop_corr_transformer =  DropCorrelatedFeatures(threshold=0.99)
-    select_feat = drop_corr_transformer.fit_transform(X_train).columns.to_list()
+    logger.info("Feature selection - RFECV")
+    min_features_to_select = int(0.5*X_train.shape[1])
+    selector = RFECV(Ridge(alpha=0.1, random_state=SEED), 
+                    step=1, cv=5, min_features_to_select=min_features_to_select)
+    selector = selector.fit(X_train, y_train)
     logger.info(f"Number of features : {X_train.shape[1]}")
-    logger.info(f"Number of features selected : {len(select_feat)}")
+    logger.info(f"Number of features selected : {selector.n_features_}")
+    select_feat = X_train.columns[selector.support_]
     pd.Series(select_feat).to_csv(join("data", "selected_feat.csv"), index=False, header = True)
 
 

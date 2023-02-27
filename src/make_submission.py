@@ -28,12 +28,12 @@ logger = logging.getLogger(__name__)
 DATA_TRAIN_PATH = join("data", "train_prepared_feat_eng.csv")
 DATA_TEST_PATH = join("data", "test_prepared_feat_eng.csv")
 SELECTED_FEAT_PATH = join("data", "selected_feat.csv")
-MODEL_PATH = join("model", "baseline_model.joblib")
+MODEL_PATH = join("model", "lineal_model.joblib")
 SCALER_PATH = join("model","minmax_scaler.joblib")
 SUBMISSION_PATH = join("data", "submissions")
 
 TARGET = "price"
-
+MODEL_TYPE = "lineal_model"
 
 
 def read_data():
@@ -50,7 +50,7 @@ def read_data():
 def make_submission(X_test, model, scaler, submission_idx):
     preds = model.predict(scaler.transform(X_test))
     pd.DataFrame({"id": submission_idx, "price": preds}).to_csv(
-        join(SUBMISSION_PATH, "baseline_model_submission.csv"), index=False, header=True
+        join(SUBMISSION_PATH, "{}_submission.csv".format(MODEL_TYPE)), index=False, header=True
     )
 
 
