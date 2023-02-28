@@ -1,1 +1,1 @@
-{"Model Name": "lineal_model", "RMSE - CV": 895.4712746740528, "Best Hyperparameters": {"alpha": 0.05672426068491989}, "SEED": 8274}
+{"Model Name": "xgboost_model", "RMSE - CV": -588.9221064515007, "Best Hyperparameters": {"learning_rate": 0.012, "n_estimators": 450, "max_depth": null, "min_child_weight": 5, "gamma": 0.0, "subsample": 0.8, "colsample_bytree": 1.0}, "SEED": 8274}

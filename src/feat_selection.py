@@ -6,9 +6,8 @@ warnings.simplefilter(action="ignore", category=DeprecationWarning)
 import pandas as pd
 import numpy as np
 
-from sklearn.linear_model import Ridge
+from xgboost import XGBRegressor
 from sklearn.feature_selection import RFECV
-
 
 import sys
 import os
@@ -48,7 +47,7 @@ def feature_selection(df_train):
     X_train, y_train = df_train.drop(columns=[TARGET,"id"]).copy(), df_train[TARGET].copy()
     logger.info("Feature selection - RFECV")
     min_features_to_select = int(0.5*X_train.shape[1])
-    selector = RFECV(Ridge(alpha=0.1, random_state=SEED), 
+    selector = RFECV(XGBRegressor(random_state=SEED), 
                     step=1, cv=5, min_features_to_select=min_features_to_select)
     selector = selector.fit(X_train, y_train)
     logger.info(f"Number of features : {X_train.shape[1]}")

@@ -26,31 +26,28 @@ stages:
       md5: 5c625caab4cf5c966020e224492add88
       size: 60870881
     - path: src/feat_selection.py
-      md5: 55d090c8e3586f49f14b84a554baf8c4
-      size: 1753
+      md5: 0caaf5bbf739dbbbe15ea749c0283b8d
+      size: 1741
     outs:
     - path: data/selected_feat.csv
-      md5: bba05edb691d1423630b71b7d0ab72f3
-      size: 325
+      md5: 7b19f848d63bafecd0da709328ca3812
+      size: 190
   train-evaluate:
     cmd: python src/train_evaluate.py
     deps:
     - path: data/selected_feat.csv
-      md5: bba05edb691d1423630b71b7d0ab72f3
-      size: 325
+      md5: 7b19f848d63bafecd0da709328ca3812
+      size: 190
     - path: data/train_prepared_feat_eng.csv
       md5: 5c625caab4cf5c966020e224492add88
       size: 60870881
     - path: src/train_evaluate.py
-      md5: 19f5e66824aabfcdef6353006acd1e66
-      size: 3490
+      md5: 2919cc7457a1afd26f36eedc3e097b0e
+      size: 7990
     outs:
-    - path: model/lineal_model.joblib
-      md5: 688204de1dacfdeab8e63e9af262682f
-      size: 1450
-    - path: model/minmax_scaler.joblib
-      md5: 0c9c02ad62e71b555de5a3a82af3916d
-      size: 2335
+    - path: model/xgboost_model.joblib
+      md5: a375d4b2c536ef7a8a5b6811787e07a4
+      size: 2129510
     - path: notes/report.json
-      md5: 58000b47aa8c6a817018d32e7803a320
-      size: 132
+      md5: ed8b87d9dacdee19a1f8d3ca7fc99f3e
+      size: 248

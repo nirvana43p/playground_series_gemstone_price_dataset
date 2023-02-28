@@ -22,8 +22,7 @@ stages:
     - data/train_prepared_feat_eng.csv
     - src/train_evaluate.py
     outs:
-    - model/lineal_model.joblib
-    - model/minmax_scaler.joblib
+    - model/xgboost_model.joblib
     metrics:
     - notes/report.json:
         cache: false
