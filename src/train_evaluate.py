@@ -13,7 +13,9 @@ import pandas as pd
 import numpy as np
 
 from xgboost import XGBRegressor
-from sklearn.model_selection import GridSearchCV,RepeatedKFold, cross_val_score
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import GridSearchCV,RepeatedKFold, cross_val_score, train_test_split
+import optuna
 
 import logging
 
@@ -49,180 +51,50 @@ def read_data():
 
     return df_train, select_feat
 
-def hyperparameters_tunne(set_tune):
-    def hyperparameters_tunned(xgb, X, y, param_grid, scoring, n_splits_cv, **kwargs):
-        set_tune(xgb, X, y, param_grid, scoring, n_splits_cv, **kwargs)
-        grid = GridSearchCV(
-            estimator=xgb.set_params(**kwargs),
-            param_grid=param_grid,
-            scoring=scoring,
-            n_jobs=multiprocessing.cpu_count() - 1,
-            cv=RepeatedKFold(n_splits=n_splits_cv, n_repeats=1, random_state=SEED),
-            refit=True,
-            verbose=0,
-            return_train_score=True,
-        )
-        grid.fit(X=X, y=y)
-        best_params = {param: grid.best_params_[param] for param in param_grid.keys()}
-        for param, value in best_params.items():
-            logger.info("Best {0} : {1}".format(param, value))
-        return best_params
 
-    return hyperparameters_tunned
+def find_best_hyperparameter(X_train, y_train,X_test, y_test,alg):
+    if alg == "xgboost":
+        def objective(trial):
+            """Define the objective function"""
 
+            params = {
+                'learning_rate': trial.suggest_loguniform('learning_rate', 0.01, 0.5),
+                'n_estimators': trial.suggest_int('n_estimators', 100, 500),
+                'min_child_weight': trial.suggest_int('min_child_weight', 1, 10),
+                'gamma': trial.suggest_loguniform('gamma', 1e-8, 1.0),
+                'subsample': trial.suggest_loguniform('subsample', 0.01, 1.0),
+                'colsample_bytree': trial.suggest_loguniform('colsample_bytree', 0.01, 1.0),
+                'reg_alpha': trial.suggest_loguniform('reg_alpha', 1e-8, 1.0),
+                'reg_lambda': trial.suggest_loguniform('reg_lambda', 1e-8, 1.0),
+                'eval_metric': 'rmse',
+            }
 
-@hyperparameters_tunne
-def subsample_colsample_tunne(xgb, X, y, param_grid, scoring, n_splits_cv, gamma=0.0):
-    logger.info("Optimizing subsample and colsample_bytree")
+            # Fit the model
+            optuna_model = XGBRegressor(**params)
+            optuna_model.fit(X_train, y_train)
 
-
-@hyperparameters_tunne
-def gamma_tunne(xgb, X, y, param_grid, scoring, n_splits_cv, max_depth=5, min_child_weight=3):
-    logger.info("Optimizing gamma")
-
-
-@hyperparameters_tunne
-def maxd_mincw_tunne(xgb, X, y, param_grid, scoring, n_splits_cv, n_estimators=200):
-    logger.info("Optimizing max_depth and min_child_weight")
-
-
-@hyperparameters_tunne
-def no_trees_tunne(xgb, X, y, param_grid, scoring, n_splits_cv, learning_rate=0.001):
-    logger.info("Optimizing number of trees")
-
-
-def lr_tunne(xgb, X, y, param_grid, eval_metric, scoring, n_experiments=3, n_splits_cv=7):
-    logger.info("Optimizing learning rate")
-    # loop over n experiments val set to test early stopping
-    best_learning_rates = []
-    for no_experiment in range(n_experiments):
-        idx_val = np.random.choice(X.shape[0], size=int(X.shape[0] * 0.1), replace=False)
-        X_val = X.iloc[idx_val, :].copy().reset_index(drop=True)
-        y_val = y.iloc[idx_val].copy().reset_index(drop=True)
-        X_train = X.reset_index(drop=True).drop(idx_val, axis=0).copy()
-        y_train = y.reset_index(drop=True).drop(idx_val, axis=0).copy()
-
-        fit_params = {
-            "early_stopping_rounds": 10,
-            "eval_metric": eval_metric,
-            "eval_set": [(X_val, y_val)],
-            "verbose": 0,
-        }
-        grid = GridSearchCV(
-            estimator=xgb.set_params(n_estimators=1000),
-            param_grid=param_grid,
-            scoring=scoring,
-            n_jobs=multiprocessing.cpu_count() - 1,
-            cv=RepeatedKFold(n_splits=n_splits_cv, n_repeats=1, random_state=SEED),
-            refit=True,
-            verbose=0,
-            return_train_score=True,
-        )
-        grid.fit(X=X_train, y=y_train, **fit_params)
-        best_lr = grid.best_params_["learning_rate"]
-        best_learning_rates.append(best_lr)
-        no_trees = len(grid.best_estimator_.get_booster().get_dump())
-        logger.info("Best lr: {0}. Number of experiment: {1}".format(best_lr, no_experiment + 1))
-        logger.info("Number of trees included in the model: {}".format(no_trees))
-
-    return {"learning_rate": sum(best_learning_rates) / len(best_learning_rates)}
-
-
-def xgboost_hyper_tunne(task, X, y):
-    best_params = {}
-
-    if task == "regression":
-        xgbr = XGBRegressor(seed=SEED)
-        eval_metric = "rmse"  # for early stopping
-        scoring = "neg_root_mean_squared_error"  # for CV
-        n_splits_cv = 2
-        params_grid = {
-            "subsample_colsample": {
-                "subsample": [0.8, 1.0],
-                "colsample_bytree": [0.6, 0.8, 1.0],
-            },
-            "gamma": {"gamma": [i / 10.0 for i in range(5)]},
-            "max_depth_min_child_weight": {
-                "max_depth": [None, 3, 5, 10, 20],
-                "min_child_weight": [None, 1, 3, 5],
-            },
-            "n_estimators": {"n_estimators": range(100, 500, 50)},
-            "learning_rate": {"learning_rate": np.linspace(0.001, 0.1, num=10)},
-        }
-
-    best_lr = lr_tunne(
-        xgbr,
-        X,
-        y,
-        params_grid["learning_rate"],
-        eval_metric,
-        scoring,
-        n_experiments=1,
-        n_splits_cv=n_splits_cv,
-    )
-    best_params.update(best_lr)
-    best_no_estimators = no_trees_tunne(
-        xgbr,
-        X,
-        y,
-        params_grid["n_estimators"],
-        scoring,
-        n_splits_cv,
-        learning_rate=best_lr["learning_rate"],
-    )
-    best_params.update(best_no_estimators)
-    best_max_depth_min_child_weight = maxd_mincw_tunne(
-        xgbr,
-        X,
-        y,
-        params_grid["max_depth_min_child_weight"],
-        scoring,
-        n_splits_cv,
-        n_estimators=best_no_estimators["n_estimators"],
-    )
-    best_params.update(best_max_depth_min_child_weight)
-    best_gamma = gamma_tunne(
-        xgbr,
-        X,
-        y,
-        params_grid["gamma"],
-        scoring,
-        n_splits_cv,
-        max_depth=best_max_depth_min_child_weight["max_depth"],
-        min_child_weight=best_max_depth_min_child_weight["min_child_weight"],
-    )
-    best_params.update(best_gamma)
-    best_subsample_colsample = subsample_colsample_tunne(
-        xgbr,
-        X,
-        y,
-        params_grid["subsample_colsample"],
-        scoring,
-        n_splits_cv,
-        gamma=best_gamma["gamma"],
-    )
-    best_params.update(best_subsample_colsample)
-    # Setting best_subsample, best_colsample_bytree
-    xgbr.set_params(**best_subsample_colsample)
-    best_score = np.mean(cross_val_score(xgbr, X, y, cv=3, scoring=scoring))
-    return xgbr, best_score, best_params
+            y_pred = optuna_model.predict(X_test)
+            rmse = mean_squared_error(y_test, y_pred)
+            return rmse
+        study = optuna.create_study(direction='minimize')
+        study.optimize(objective, n_trials=15)
+        trial = study.best_trial
+        return trial.params
 
 
 if __name__ == "__main__":
     logging.info("Loading Data...")
     df_train, select_feat = read_data()
-    X_train, y_train = df_train.drop(columns=[TARGET,"id"])[select_feat].copy(), df_train[TARGET].copy()
+    X_train, X_test, y_train, y_test = train_test_split(df_train.drop(columns=[TARGET,"id"])[select_feat], df_train[TARGET], test_size=0.3, random_state=SEED)
+    #X_train, y_train = df_train.drop(columns=[TARGET,"id"])[select_feat].copy(), df_train[TARGET].copy()
     logger.info("Hyperparameter tunning")
-    xgbr, best_score_tunned, best_params = xgboost_hyper_tunne("regression", X_train, y_train)
-    logger.info("{}".format(xgbr))
-    logger.info("RMSE of tunning : {}".format(-1 * best_score_tunned))
+    best_params = find_best_hyperparameter(X_train, y_train, X_test, y_test, alg = "xgboost")
     logger.info("Performance estimation")
-    best_score = np.mean(cross_val_score(xgbr, X_train, y_train, cv=10, scoring="neg_root_mean_squared_error"))
+    best_score = np.mean(cross_val_score(XGBRegressor(**best_params), X_train, y_train, cv=5, scoring="neg_root_mean_squared_error"))
     logger.info("RMSE perfomance : {}".format(-1 * best_score))
-    model = XGBRegressor(**xgbr.get_params())
-    logger.info("Training..")
+    model = XGBRegressor(**best_params)
     model.fit(X_train, y_train, eval_metric="rmse", verbose=True)
     logger.info("Generating report..")
-    save_simple_metrics_report(best_score, best_params, model_name = MODEL_TYPE, SEED = SEED)
+    save_simple_metrics_report(-1*best_score, best_params, model_name = MODEL_TYPE, SEED = SEED)
     logger.info("Saving the model..")
     joblib.dump(model,join("model","{}.joblib".format(MODEL_TYPE)))

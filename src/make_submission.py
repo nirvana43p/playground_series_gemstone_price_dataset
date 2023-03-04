@@ -32,7 +32,7 @@ MODEL_PATH = join("model", "xgboost_model.joblib")
 SUBMISSION_PATH = join("data", "submissions")
 
 TARGET = "price"
-MODEL_TYPE = "xgboost_model"
+MODEL_TYPE = "xgboost_model_tune"
 
 
 def read_data():

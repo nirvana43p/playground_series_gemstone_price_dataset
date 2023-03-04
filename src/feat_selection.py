@@ -48,12 +48,18 @@ def feature_selection(df_train):
     logger.info("Feature selection - RFECV")
     min_features_to_select = int(0.5*X_train.shape[1])
     selector = RFECV(XGBRegressor(random_state=SEED), 
-                    step=1, cv=5, min_features_to_select=min_features_to_select)
+                    step=1, cv=3, min_features_to_select=min_features_to_select)
     selector = selector.fit(X_train, y_train)
     logger.info(f"Number of features : {X_train.shape[1]}")
     logger.info(f"Number of features selected : {selector.n_features_}")
     select_feat = X_train.columns[selector.support_]
     pd.Series(select_feat).to_csv(join("data", "selected_feat.csv"), index=False, header = True)
+
+
+def feature_selection_all_features(df_train):
+    X_train, y_train = df_train.drop(columns=[TARGET,"id"]).copy(), df_train[TARGET].copy()
+    pd.Series(X_train.columns).to_csv(join("data", "selected_feat.csv"), index=False, header = True)
+
 
 
 if __name__ == "__main__":

@@ -10,44 +10,44 @@ stages:
       md5: 14ddfc56c931255ee10d3859d0ac4fc0
       size: 10462804
     - path: src/feat_engineering.py
-      md5: fa1328ad81363bc8018294dad4343645
-      size: 9545
+      md5: ce0a1614fc1ad3909ac8ee866ab224a1
+      size: 13065
     outs:
     - path: data/test_prepared_feat_eng.csv
-      md5: 7f39ef23dc0d16f508931b9210f68ea7
-      size: 40002175
+      md5: c4be3f57fd76ee4bbadce6768725929c
+      size: 45326189
     - path: data/train_prepared_feat_eng.csv
-      md5: 5c625caab4cf5c966020e224492add88
-      size: 60870881
+      md5: 5383316035c79ddf1e09e644b14ed60b
+      size: 68857118
   feat_selection:
     cmd: python src/feat_selection.py
     deps:
     - path: data/train_prepared_feat_eng.csv
-      md5: 5c625caab4cf5c966020e224492add88
-      size: 60870881
+      md5: 5383316035c79ddf1e09e644b14ed60b
+      size: 68857118
     - path: src/feat_selection.py
-      md5: 0caaf5bbf739dbbbe15ea749c0283b8d
-      size: 1741
+      md5: 4ae128057114aa2ae8c2cf21ac116a48
+      size: 1989
     outs:
     - path: data/selected_feat.csv
-      md5: 7b19f848d63bafecd0da709328ca3812
-      size: 190
+      md5: db2c2900fca6b5d11ba74958e72ca072
+      size: 304
   train-evaluate:
     cmd: python src/train_evaluate.py
     deps:
     - path: data/selected_feat.csv
-      md5: 7b19f848d63bafecd0da709328ca3812
-      size: 190
+      md5: db2c2900fca6b5d11ba74958e72ca072
+      size: 304
     - path: data/train_prepared_feat_eng.csv
-      md5: 5c625caab4cf5c966020e224492add88
-      size: 60870881
+      md5: 5383316035c79ddf1e09e644b14ed60b
+      size: 68857118
     - path: src/train_evaluate.py
-      md5: 2919cc7457a1afd26f36eedc3e097b0e
-      size: 7990
+      md5: 6ca32f4dc8891e70ae52d2c45de90e50
+      size: 3710
     outs:
     - path: model/xgboost_model.joblib
-      md5: a375d4b2c536ef7a8a5b6811787e07a4
-      size: 2129510
+      md5: f6d24935bd891d14ae631ba0d0cc4020
+      size: 633552
     - path: notes/report.json
-      md5: ed8b87d9dacdee19a1f8d3ca7fc99f3e
-      size: 248
+      md5: 4ece1fdc594034ca330eae203d7d7ebe
+      size: 361

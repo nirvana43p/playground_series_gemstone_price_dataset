@@ -82,10 +82,73 @@ def numeric_variable_transform(X_train, X_test):
     X_test["carat"], _ = stats.yeojohnson(X_test["carat"])
     return X_train, X_test
 
+def x_y_and_z_variable_transform(X_train, X_test):
+    # train
+    # index where we can impute x with y
+    idx_impute_x_with_y = X_train[(X_train.x == 0) & (X_train.y != 0)].index
+    idx_impute_y_with_x = X_train[(X_train.y == 0) & (X_train.x != 0)].index
+    if not idx_impute_x_with_y.empty:
+        X_train.loc[idx_impute_x_with_y,"x"] = X_train.loc[idx_impute_x_with_y,"y"]
+    if not idx_impute_y_with_x.empty:
+        X_train.loc[idx_impute_y_with_x,"y"] = X_train.loc[idx_impute_y_with_x,"x"]
+
+    for idx in X_train[(X_train.x == 0)&(X_train.y == 0)].index:
+        carat, cut, color, clarity, depth = X_train.loc[idx,["carat","cut","color","clarity","depth"]]
+        x_mean, y_mean = X_train[(X_train["carat"] == carat) & (X_train["cut"] == int(cut)) & 
+                   (X_train["color"] == int(color)) & (X_train["clarity"] == int(clarity))][X_train.x > 0][["x","y"]].mean()
+        X_train.loc[idx,["x","y"]] = [x_mean,y_mean]
+
+    for idx in X_train[X_train.z == 0].index:
+        carat, cut, color, clarity= X_train.loc[idx,["carat","cut","color","clarity"]]
+        z_mean = X_train[(X_train["carat"] == carat) & (X_train["cut"] == int(cut)) & 
+                   (X_train["color"] == int(color)) & (X_train["clarity"] == int(clarity))][X_train.x > 0]["z"].mean()
+        X_train.loc[idx,"z"] = z_mean
+
+
+    # test
+    idx_impute_x_with_y = X_test[(X_test.x == 0) & (X_test.y != 0)].index
+    idx_impute_y_with_x = X_test[(X_test.y == 0) & (X_test.x != 0)].index
+    if not idx_impute_x_with_y.empty:
+       X_test.loc[idx_impute_x_with_y,"x"] =X_test.loc[idx_impute_x_with_y,"y"]
+    if not idx_impute_y_with_x.empty:
+       X_test.loc[idx_impute_y_with_x,"y"] =X_test.loc[idx_impute_y_with_x,"x"]
+
+    for idx in X_test[(X_test.x == 0)&(X_test.y == 0)].index:
+        carat, cut, color, clarity, depth = X_test.loc[idx,["carat","cut","color","clarity","depth"]]
+        x_mean, y_mean =X_test[(X_test["carat"] == carat) & (X_test["cut"] == int(cut)) & 
+                   (X_test["color"] == int(color)) & (X_test["clarity"] == int(clarity))][X_test.x > 0][["x","y"]].mean()
+        X_test.loc[idx,["x","y"]] = [x_mean,y_mean]
+
+    for idx in X_test[X_test.z == 0].index:
+        carat, cut, color, clarity=X_test.loc[idx,["carat","cut","color","clarity"]]
+        z_mean =X_test[(X_test["carat"] == carat) & (X_test["cut"] == int(cut)) & 
+                   (X_test["color"] == int(color)) & (X_test["clarity"] == int(clarity))][X_test.x > 0]["z"].mean()
+        X_test.loc[idx,"z"] = z_mean
+
+    return X_train, X_test
+
 def agregate_variable_transform(X_train,X_test):
     """
         Agregate functions to enrich features 
     """
+    error_x_y_vars = ["x","y"]
+    error_x_y_transformer = MathFeatures(
+            variables = error_x_y_vars,
+            func = lambda x: np.log((x["x"] -x["y"])**2+0.1),
+            new_variables_names = ["error_x_y"]
+        )
+    X_train = error_x_y_transformer.fit_transform(X_train)
+    X_test = error_x_y_transformer.transform(X_test)
+
+    error_x_y_with_cut_and_carat_vars = ["error_x_y","cut","carat"]
+    error_x_y_with_cut_and_carat_transformer = MathFeatures(
+            variables = error_x_y_with_cut_and_carat_vars,
+            func = ["prod"],
+            new_variables_names = ["error_x_y_with_cut_and_carat"]
+        )
+    X_train = error_x_y_with_cut_and_carat_transformer.fit_transform(X_train)
+    X_test = error_x_y_with_cut_and_carat_transformer.transform(X_test)
+
     # quality measurement
     quality_vars = ["cut","color","clarity"]
     quality_transformer = MathFeatures(
@@ -199,7 +262,7 @@ def agregate_variable_transform(X_train,X_test):
     density_vars = ["carat","cone_volume"]
     density_transformer = MathFeatures(
             variables = density_vars,
-            func = lambda x: x.carat*x.cone_volume,
+            func = lambda x: x.carat/x.cone_volume,
             new_variables_names = ["density"])
     X_train = density_transformer.fit_transform(X_train)
     X_test = density_transformer.transform(X_test)
@@ -233,6 +296,9 @@ def feature_engineering(df_train, df_test):
 
     logger.info("Numeric Variables transformation")
     X_train, X_test = numeric_variable_transform(X_train, X_test)
+
+    logger.info("x, y and z variable imputation")
+    X_train, X_test = x_y_and_z_variable_transform(X_train, X_test)
 
     logger.info("Agregate variables")
     X_train, X_test = agregate_variable_transform(X_train,X_test)
